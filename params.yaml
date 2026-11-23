@@ -15,9 +15,19 @@ data:
 # Структура: 3 типа признаков (numeric, categorical, binary)
 # Подсказка: посмотри какие колонки какого типа в данных
 features:
-  numeric: []  # TODO: заполни числовые признаки
-  categorical: []  # TODO: заполни категориальные признаки
-  binary: []  # TODO: заполни бинарные признаки
+  numeric:
+    - tenure_months
+    - monthly_charges
+    - total_charges
+    - num_support_calls
+    - avg_monthly_gb
+  categorical:
+    - contract_type
+    - internet_service
+    - payment_method
+  binary:
+    - has_tech_support
+    - is_senior
 
 # TODO (занятие 3): перенести сюда гиперпараметры модели
 train:
