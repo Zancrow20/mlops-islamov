@@ -8,23 +8,24 @@ TODO (занятие 1):
 
 Проверка: два запуска подряд должны дать одинаковые файлы.
 """
+
 from __future__ import annotations
 
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
-from src.config import load_params, resolve, TARGET
+from src.config import TARGET, load_params, resolve
 from src.logging_setup import setup_logging
 
 log = setup_logging()
 
+
 def clean(df: pd.DataFrame) -> pd.DataFrame:
     """Заполняет пропуски в total_charges осмысленной оценкой."""
     df = df.copy()
-    df["total_charges"] = df["total_charges"].fillna(
-        df["monthly_charges"] * df["tenure_months"]
-    )
+    df["total_charges"] = df["total_charges"].fillna(df["monthly_charges"] * df["tenure_months"])
     return df
+
 
 def main() -> None:
     params = load_params()
@@ -68,6 +69,7 @@ def main() -> None:
             part[TARGET].mean(),
             path,
         )
+
 
 if __name__ == "__main__":
     main()

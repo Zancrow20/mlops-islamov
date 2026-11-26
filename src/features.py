@@ -11,6 +11,7 @@ TODO (занятие 1): собрать здесь ColumnTransformer.
 Подсказка: почему препроцессор обязан ехать в одном Pipeline с моделью,
 разбирается на паре. Если сделать иначе — сервис на занятии 10 сломается.
 """
+
 from __future__ import annotations
 
 from typing import Any
