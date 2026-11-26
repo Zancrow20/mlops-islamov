@@ -15,13 +15,15 @@ from __future__ import annotations
 
 from typing import Any
 
+from sklearn.compose import ColumnTransformer
+from sklearn.impute import SimpleImputer
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
+
 
 def build_preprocessor(params: dict[str, Any]):
     """Собирает ColumnTransformer для разных типов признаков.
 
-    TODO: Студент заполняет этот код
-
-    Шаги:
     1. Создать Pipeline для числовых: заполнение пропусков + масштабирование
     2. Создать Pipeline для категориальных: заполнение пропусков + OneHotEncoder
     3. Создать ColumnTransformer который объединяет все три типа
@@ -29,5 +31,26 @@ def build_preprocessor(params: dict[str, Any]):
 
     Подсказка: списки колонок берутся из params["features"]
     """
-    # TODO: импорты и код здесь
-    pass
+    f = params["features"]
+
+    num_pipe = Pipeline(
+        steps=[
+            ("imputer", SimpleImputer(strategy="median")),
+            ("scaler", StandardScaler()),
+        ]
+    )
+
+    cat_pipe = Pipeline(
+        steps=[
+            ("imputer", SimpleImputer(strategy="most_frequent")),
+            ("ohe", OneHotEncoder(handle_unknown="ignore", sparse_output=False)),
+        ]
+    )
+
+    return ColumnTransformer(
+        transformers=[
+            ("num", num_pipe, f["numeric"]),
+            ("cat", cat_pipe, f["categorical"]),
+            ("bin", "passthrough", f["binary"]),
+        ]
+    )

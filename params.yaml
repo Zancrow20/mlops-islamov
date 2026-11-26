@@ -11,14 +11,38 @@ data:
   test_size: 0.2
   val_size: 0.1
 
-# Занятие 1: TODO - студент заполняет список признаков из baseline_notebook.py
 # Структура: 3 типа признаков (numeric, categorical, binary)
 # Подсказка: посмотри какие колонки какого типа в данных
 features:
-  numeric: []  # TODO: заполни числовые признаки
-  categorical: []  # TODO: заполни категориальные признаки
-  binary: []  # TODO: заполни бинарные признаки
+  numeric:
+    - tenure_months
+    - monthly_charges
+    - total_charges
+    - num_support_calls
+    - avg_monthly_gb
+  categorical:
+    - contract_type
+    - internet_service
+    - payment_method
+  binary:
+    - has_tech_support
+    - is_senior
 
-# TODO (занятие 3): перенести сюда гиперпараметры модели
 train:
   model: logreg
+  logreg:
+    C: 1.0
+    max_iter: 1000
+  random_forest:
+    n_estimators: 100
+    criterion: 'gini'
+    min_samples_leaf: 3
+    max_features: 'sqrt'
+    max_depth: 9
+  gradient_boosting:
+    learning_rate: 0.1
+    n_estimators: 100
+    subsample: 0.8
+    max_features: 0.8
+    min_samples_leaf: 10
+    max_depth: 3
