@@ -12,24 +12,25 @@ TODO (занятие 1): перенести сюда логику из notebooks
 
 Запуск: python -m src.train
 """
+
 from __future__ import annotations
 
 import json
-
 from typing import Any
-import pandas as pd
+
 import joblib
-
-from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+import pandas as pd
+from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
-from sklearn.pipeline import Pipeline
 from sklearn.metrics import average_precision_score, f1_score, roc_auc_score
+from sklearn.pipeline import Pipeline
 
+from src.config import TARGET, feature_columns, load_params, resolve
 from src.features import build_preprocessor
-from src.config import load_params, resolve, feature_columns, TARGET
 from src.logging_setup import setup_logging
 
 log = setup_logging()
+
 
 def build_model(params: dict[str, Any]):
     """Возвращает модель по имени из params['train']['model']."""
@@ -45,6 +46,7 @@ def build_model(params: dict[str, Any]):
     if model_name == "gradient_boosting":
         return GradientBoostingClassifier(random_state=seed, **model_params)
     raise ValueError(f"Неизвестная модель: {model_name}")
+
 
 def main() -> None:
     params = load_params()
