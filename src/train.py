@@ -1,8 +1,5 @@
 """Стадия train.
 
-TODO (занятие 1): перенести сюда логику из notebooks/baseline_notebook.py,
-исправив всё, что вы в ней нашли.
-
 Обязательно:
   * никаких абсолютных путей — только src.config.resolve();
   * никаких магических чисел — только params.yaml;
@@ -16,9 +13,12 @@ TODO (занятие 1): перенести сюда логику из notebooks
 from __future__ import annotations
 
 import json
+import platform
+import subprocess
 from typing import Any
 
 import joblib
+import numpy as np
 import pandas as pd
 from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
@@ -32,6 +32,20 @@ from src.logging_setup import setup_logging
 log = setup_logging()
 
 
+def git_sha() -> str:
+    """Короткий хеш текущего коммита. В копии без .git обучение падать не должно"""
+    try:
+        out = subprocess.run(
+            ["git", "rev-parse", "--short", "HEAD"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        return out.stdout.strip()
+    except Exception:
+        return "unknown"
+
+
 def build_model(params: dict[str, Any]):
     """Возвращает модель по имени из params['train']['model']."""
     seed = params["seed"]
@@ -39,7 +53,6 @@ def build_model(params: dict[str, Any]):
     model_name = train_cfg["model"]
     model_params = dict(train_cfg.get(model_name, {}) or {})
     if model_name == "logreg":
-        model_params.setdefault("max_iter", 1000)
         return LogisticRegression(random_state=seed, **model_params)
     if model_name == "random_forest":
         return RandomForestClassifier(random_state=seed, **model_params)
@@ -50,10 +63,13 @@ def build_model(params: dict[str, Any]):
 
 def main() -> None:
     params = load_params()
-    d = params["data"]
+    data = params["data"]
+    evaluate = params["evaluate"]
+    train = params["train"]
+    np.random.seed(params["seed"])
 
     # 1. Загрузить данные train.csv и val.csv из data/processed/
-    data_dir = resolve(d["processed_dir"])
+    data_dir = resolve(data["processed_dir"])
     train_path = data_dir / "train.csv"
     val_path = data_dir / "val.csv"
 
@@ -78,11 +94,11 @@ def main() -> None:
 
     # 5. Предсказать на val
     proba = pipe.predict_proba(X_val)[:, 1]
-    pred = (proba >= 0.5).astype(int)
+    pred = (proba >= evaluate["threshold"]).astype(int)
 
     # 6. Посчитать метрики (roc_auc, f1, pr_auc)
     metrics = {
-        "model": params["train"]["model"],
+        "model": train["model"],
         "roc_auc": float(roc_auc_score(y_val, proba)),
         "pr_auc": float(average_precision_score(y_val, proba)),
         "f1": float(f1_score(y_val, pred)),
@@ -96,8 +112,26 @@ def main() -> None:
     # 8. Сохранить метрики в reports/train_metrics.json
     metrics_path = resolve("reports/train_metrics.json")
     metrics_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(metrics_path, "w", encoding="utf-8") as f:
-        json.dump(metrics, f, indent=2)
+    with open(metrics_path, mode="w", encoding="utf-8") as file:
+        json.dump(metrics, file, indent=2)
+        file.write("\n")
+
+    # 9. Сохранить связь модели и метрик в виде метаданных
+    metadata = {
+        "model_name": train["model"],
+        "commit_sha": git_sha(),
+        "python_version": platform.python_version(),
+        "features": cols,
+        "val_metrics": metrics,
+    }
+
+    metadata_path = resolve("models/model_meta.json")
+    metadata_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(metadata_path, mode="w", encoding="utf-8") as file:
+        json.dump(metadata, file, indent=2)
+        file.write("\n")
+
+    # 10. Логгирование
     log.info("Модель сохранена: %s", model_path)
     log.info("Метрики на val: %s", metrics)
 

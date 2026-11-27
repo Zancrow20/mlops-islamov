@@ -29,11 +29,11 @@ def clean(df: pd.DataFrame) -> pd.DataFrame:
 
 def main() -> None:
     params = load_params()
-    d = params["data"]
+    data = params["data"]
     seed = params["seed"]
 
     # 1. Прочитать raw данные с помощью pd.read_csv()
-    raw = pd.read_csv(resolve(d["raw_path"]))
+    raw = pd.read_csv(resolve(data["raw_path"]))
 
     # 2. Обработать пропуски в total_charges (заполнить осмысленно, не dropna!)
     df = clean(raw)
@@ -41,12 +41,12 @@ def main() -> None:
     # 3. Разбить на train/val/test со stratify по churn
     train_val, test = train_test_split(
         df,
-        test_size=d["test_size"],
+        test_size=data["test_size"],
         random_state=seed,
         stratify=df[TARGET],
     )
 
-    val_ratio = d["val_size"] / (1.0 - d["test_size"])
+    val_ratio = data["val_size"] / (1.0 - data["test_size"])
 
     train, val = train_test_split(
         train_val,
@@ -56,7 +56,7 @@ def main() -> None:
     )
 
     # 4. Сохранить три CSV в data/processed/
-    out_dir = resolve(d["processed_dir"])
+    out_dir = resolve(data["processed_dir"])
     out_dir.mkdir(parents=True, exist_ok=True)
 
     for name, part in [("train", train), ("val", val), ("test", test)]:
