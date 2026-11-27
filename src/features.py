@@ -1,7 +1,5 @@
 """Построение препроцессора признаков.
 
-TODO (занятие 1): собрать здесь ColumnTransformer.
-
 Требования:
   * числовые признаки: заполнение пропусков + масштабирование;
   * категориальные: заполнение пропусков + OneHotEncoder;
@@ -32,7 +30,7 @@ def build_preprocessor(params: dict[str, Any]):
 
     Подсказка: списки колонок берутся из params["features"]
     """
-    f = params["features"]
+    features = params["features"]
 
     num_pipe = Pipeline(
         steps=[
@@ -50,8 +48,8 @@ def build_preprocessor(params: dict[str, Any]):
 
     return ColumnTransformer(
         transformers=[
-            ("num", num_pipe, f["numeric"]),
-            ("cat", cat_pipe, f["categorical"]),
-            ("bin", "passthrough", f["binary"]),
+            ("num", num_pipe, features["numeric"]),
+            ("cat", cat_pipe, features["categorical"]),
+            ("bin", "passthrough", features["binary"]),
         ]
     )
